@@ -1,0 +1,779 @@
+import React from "react";
+import Todo from "./Todo";
+import Tabul from "./Tabul";
+import Dropdown from "./Dropdown";
+import Stopwatch from "./Stopwatch";
+import Studentdetails from "./Studentdetails";
+import { BrowserRouter, Route,Routes } from "react-router-dom";
+import UpdateStudent from "./UpdateStudent";
+const App: React.FC = () => {
+  return (
+    <>
+      {/* <Todo/> */}
+      {/* <Tabul/> */}
+      {/* <Dropdown/> */}
+      {/* <Stopwatch/> */}
+      
+      <Routes>
+        <Route path="/" element={<Studentdetails />} />
+        <Route path="/update-student" element={<UpdateStudent />} />
+      </Routes>
+    
+    </>
+  );
+};
+
+export default App;
+
+import { useState } from "react";
+
+const Dropdown: React.FC = () => {
+  const [message, setMessage] = useState<string>("");
+
+  const arr = [
+    "On Sunday we worship god Surya dev",
+    "On Monday we worship god Shiva ji",
+    "On Tuesday we worship god Hanuman ji",
+    "On Wednesday we worship god Ganesh ji",
+    "On Thursday we worship god Vanspati",
+    "On Friday we worship god Laxmi ji and Vishnu ji",
+    "On Saturday we worship god Shani Dev and Hanuman ji",
+  ];
+
+  return (
+    <>
+      <select
+        name="choose-day"
+        onChange={(e) => setMessage(arr[e.target.value])}
+      >
+        <option value="">Choose a day</option>
+        <option value="0">Sunday</option>
+        <option value="1">Monday</option>
+        <option value="2">Tuesday</option>
+        <option value="3">Wednesday</option>
+        <option value="4">Thursday</option>
+        <option value="5">Friday</option>
+        <option value="6">Saturday</option>
+      </select>
+
+      <div className="mt-4">
+        { <p>{message}</p>}
+      </div>
+    </>
+  );
+};
+
+export default Dropdown;
+
+import { useState } from "react";
+
+const Stopwatch = () => {
+  type Time = {
+    hours: number;
+    min: number;
+    sec: number;
+  };
+
+  const [time, setTime] = useState<Time>({ hours: 0, min: 0, sec: 0 });
+  const [intervalId, setIntervalId] = useState<number | null>(null);
+
+  const startTime = () => {
+    if (intervalId !== null) return;
+
+    const id = window.setInterval(() => {
+      setTime((prev) => {
+        let { hours, min, sec } = prev;
+        sec++;
+        if (sec === 60) {
+          sec = 0;
+          min++;
+        }
+        if (min === 60) {
+          min = 0;
+          hours++;
+        }
+        return { hours, min, sec };
+      });
+    }, 1);
+
+    setIntervalId(id);
+  };
+
+  const stopTime = () => {
+    if (intervalId !== null) {
+      clearInterval(intervalId);
+      setIntervalId(null);
+    }
+  };
+
+  const resetTime = () => {
+    stopTime();
+    setTime({ hours: 0, min: 0, sec: 0 });
+  };
+
+  return (
+    <>
+      <h3>Timer</h3>
+      <p>
+        {time.hours} Hours : {time.min} Minutes : {time.sec} Seconds
+      </p>
+      <div>
+        <button onClick={startTime}>Start</button>
+        <button onClick={stopTime}>Stop</button>
+        <button onClick={resetTime}>Reset</button>
+      </div>
+    </>
+  );
+};
+
+export default Stopwatch;
+
+
+import { useState,useEffect } from "react";
+
+const Tabul : React.FC = ()=>{
+
+   const [d,setData] = useState({});
+
+  useEffect(() => {
+    fetch("https://reqres.in/api/users", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": "reqres-free-v1",
+      }
+    })
+      .then((res) => res.json())
+      .then((ans) => setData(ans))
+      .catch((err) => {
+        console.log(err);
+      });
+  },[]);
+  console.log(d);
+
+    return (
+        <>
+        <div>
+            <table border={1}>
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Page</th>
+              <th>Total Pages</th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.data?.map((v: any) => (
+              <tr key={v.id}>
+                <td>{v.id}</td>
+                <td>{v.first_name} {v.last_name}</td>
+                <td>{v.email}</td>
+                <td>{d.page}</td>
+                <td>{d.total_pages}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        </div>
+        
+        </>
+    )
+}
+export default Tabul;
+
+import React, { useState } from 'react';
+
+type Task = {
+  text: string;
+  completed: boolean;
+};
+
+const Todo: React.FC = () => {
+  const [v, setv] = useState<string>('');
+  const [arr, setarr] = useState<Task[]>([]);
+
+  const create = () => {
+    if (v.trim()) {
+      setarr((prev) => [...prev, { text: v, completed: false }]);
+      setv('');
+    }
+  };
+
+  const complete = (i: number) => {
+    setarr((prev) =>
+      prev.map((task, index) =>
+        index === i ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  const deleted = (i: number) => {
+    setarr((prev) => prev.filter((_, index) => index !== i));
+  };
+
+  return (
+    <>
+      <input
+        type="text"
+        placeholder="Enter the task"
+        value={v}
+        onChange={(e) => {
+          setv(e.target.value);
+        }}
+      />
+      <button onClick={create}>Add</button>
+
+      <div>
+        <ul>
+          {arr.map((task, i) => (
+            <li key={i} className={task.completed ? 'line-through' : ''}>
+              {task.text}
+              <button onClick={() => complete(i)}>
+                {task.completed ? 'completed' : 'incompleted'}
+              </button>
+              <button onClick={() => deleted(i)}>Delete</button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+};
+
+export default Todo;
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+export type Details = {
+  id: string;
+  name: string;
+  email: string;
+  cgpa: string | number;
+};
+
+const Studentdetails: React.FC = () => {
+  const [stu, setStu] = useState<Details>({
+    id: "",
+    name: "",
+    email: "",
+    cgpa: "",
+  });
+
+  const [students, setStudents] = useState<Details[]>([]);
+  const [showDetails, setShowDetails] = useState(false);
+
+  const navigate = useNavigate();
+
+  // 👉 Load students from localStorage on component mount
+  useEffect(() => {
+    const storedStudents = JSON.parse(localStorage.getItem("students") || "[]");
+    setStudents(storedStudents);
+    if (storedStudents.length > 0) setShowDetails(true);
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (stu.id !== "") {
+      const updatedList = [...students, stu];
+      setStudents(updatedList);
+      setShowDetails(true);
+
+      // 👉 Store the updated list in localStorage
+      localStorage.setItem("students", JSON.stringify(updatedList));
+
+      // Clear the form
+      setStu({
+        id: "",
+        name: "",
+        email: "",
+        cgpa: "",
+      });
+    }
+  };
+
+  const handleDelete = (index: number) => {
+    const updatedList = students.filter((_, i) => i !== index);
+    setStudents(updatedList);
+    localStorage.setItem("students", JSON.stringify(updatedList));
+  };
+
+  const handleUpdate = (index: number) => {
+    navigate("/update-student", { state: { student: students[index], index } });
+  };
+
+  return (
+    <>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Id:</label>
+          <input
+            type="text"
+            value={stu.id}
+            onChange={(e) => setStu((prev) => ({ ...prev, id: e.target.value }))}
+          />
+        </div>
+
+        <div>
+          <label>Name:</label>
+          <input
+            type="text"
+            value={stu.name}
+            onChange={(e) =>
+              setStu((prev) => ({ ...prev, name: e.target.value }))
+            }
+          />
+        </div>
+
+        <div>
+          <label>Email:</label>
+          <input
+            type="text"
+            value={stu.email}
+            onChange={(e) =>
+              setStu((prev) => ({ ...prev, email: e.target.value }))
+            }
+          />
+        </div>
+
+        <div>
+          <label>CGPA:</label>
+          <input
+            type="text"
+            value={stu.cgpa}
+            onChange={(e) =>
+              setStu((prev) => ({ ...prev, cgpa: e.target.value }))
+            }
+          />
+        </div>
+
+        <button type="submit">Submit</button>
+      </form>
+
+      {showDetails && students.length > 0 && (
+        <div>
+          <h3>Student Details:</h3>
+          {students.map((student, index) => (
+            <div
+              key={index}
+              style={{
+                marginBottom: "10px",
+                border: "1px solid #ccc",
+                padding: "5px",
+              }}
+            >
+              <p>
+                <strong>Id:</strong> {student.id}
+              </p>
+              <p>
+                <strong>Name:</strong> {student.name}
+              </p>
+              <p>
+                <strong>Email:</strong> {student.email}
+              </p>
+              <p>
+                <strong>CGPA:</strong> {student.cgpa}
+              </p>
+              <button onClick={() => handleUpdate(index)}>Update</button>
+              <button onClick={() => handleDelete(index)}>Delete</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Studentdetails;
+
+import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Details } from "./Studentdetails";
+
+const UpdateStudent: React.FC = () => {
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  const [student, setStudent] = useState<Details>(state.student);
+  const index = state.index;
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    const storedData = JSON.parse(localStorage.getItem("students") || "[]");
+    storedData[index] = student;
+    localStorage.setItem("students", JSON.stringify(storedData));
+    navigate("/");
+  };
+
+  return (
+    <form onSubmit={handleUpdate}>
+      <div>
+        <label>Id:</label>
+        <input
+          type="text"
+          value={student.id}
+          onChange={(e) => setStudent({ ...student, id: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <label>Name:</label>
+        <input
+          type="text"
+          value={student.name}
+          onChange={(e) => setStudent({ ...student, name: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <label>Email:</label>
+        <input
+          type="text"
+          value={student.email}
+          onChange={(e) => setStudent({ ...student, email: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <label>CGPA:</label>
+        <input
+          type="text"
+          value={student.cgpa}
+          onChange={(e) => setStudent({ ...student, cgpa: e.target.value })}
+        />
+      </div>
+
+      <button type="submit">Save Changes</button>
+    </form>
+  );
+};
+
+export default UpdateStudent;
+
+
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+
+const API_KEY = "ecb969c6";
+const API_URL = "https://www.omdbapi.com/";
+
+function MoviePage() {
+  const { title } = useParams();
+  const navigate = useNavigate();
+  const [movie, setMovie] = useState<any>(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}?t=${title}&apikey=${API_KEY}`)
+      .then((res) => res.json())
+      .then((data) => setMovie(data))
+      .catch((err) => console.error("Error fetching data:", err));
+  }, [title]);
+
+  if (!movie || movie.Response === "False") return <h2>Movie not found</h2>;
+
+  return (
+    <div className="flex flex-col items-center p-4">
+      <h1 className="text-2xl font-bold">{movie.Title}</h1>
+      {movie.Poster && <img src={movie.Poster} alt={movie.Title} className="mt-2 w-64 h-auto" />}
+      <p>Release Date: {movie.Released}</p>
+      <p>Rating: {movie.imdbRating}</p>
+
+      <button
+        className="bg-gray-500 text-white p-2 mt-4 rounded"
+        onClick={() => navigate("/")}
+      >
+        Back to Search Page
+      </button>
+    </div>
+  );
+}
+
+export default MoviePage;
+
+
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+function SearchPage() {
+  const [query, setQuery] = useState("");
+  const [lastSearchedMovie, setLastSearchedMovie] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    if (query.trim()) {
+      setLastSearchedMovie(query);
+      navigate(`/movie/${query}`);
+    }
+  };
+
+  const handleBackToMovie = () => {
+    if (lastSearchedMovie) {
+      navigate(`/movie/${lastSearchedMovie}`);
+    } else {
+      navigate("/movie/Breaking Bad"); 
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center p-4">
+      <h1 className="text-2xl font-bold mb-4">Movie Search</h1>
+      <input
+        type="text"
+        placeholder="Enter movie title"
+        className="border p-2 rounded w-64"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      <div className="mt-2">
+        <button className="bg-blue-500 text-white p-2 rounded mr-2" onClick={handleSearch}>
+          Search
+        </button>
+        <button className="bg-gray-500 text-white p-2 rounded" onClick={handleBackToMovie}>
+          Back to Movie Page
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default SearchPage;
+
+import React, { createContext, useState } from 'react'
+export const AuthContext=createContext();
+
+const AuthContextProvider = ({children}) => {
+    const[user,setUser]=useState(null);
+
+    const login=(username)=>{
+        setUser(username);
+    }
+    const logout=()=>{
+        setUser(null);
+    }
+  return (
+    <AuthContext.Provider value={{user,login,logout}}>{children}</AuthContext.Provider>
+  )
+}
+
+export default AuthContextProvider
+
+import React, { useContext, useState } from 'react'
+import { AuthContext } from '../contexts/AuthContext'
+
+const Login = () => {
+    const[username,setUsername]=useState('');
+    const{user,login,logout}=useContext(AuthContext)
+  return (
+    <div>
+        {
+            user?(
+                <div>
+                    <h2>{username}, you have logged in successfully</h2>
+                    <button className='m-2 border border-black' onClick={logout}>Logout</button>
+                </div>
+            ):(
+                <div>
+                    <input type="text" className='m-2 border border-black' onChange={(e)=>{setUsername(e.target.value)}} />
+                    <button className='m-2 border border-black' onClick={()=>login(username)}>Login</button>
+                </div>
+            )
+        }
+    </div>
+  )
+}
+
+export default Login
+
+<div>
+      <AuthContextProvider>
+        <Login/>
+      </AuthContextProvider>
+    </div>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <Script src="https://cdn.tailwindcss.com"></Script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body class="flex items-center justify-center h-screen bg-[#333]/30">
+
+    <div class="h-[55%] w-80 bg-white flex items-start justify-center  rounded-2xl">
+        <form action="">
+        <img class="mt-8" src="https://login.testpad.chitkarauniversity.edu.in/images/chitkara_logo_primary.png" alt=""><br>
+        <h3>Log into your account</h3>
+        <label for="id" class="text-red-600">Email or Enrollment Id</label><br>
+        <input id="id" type="text" placeholder="Email or Enrollment Id" class="w-56"><br><br>
+        <label for="pass" class="text-red-600">Password</label><br>
+        <input id="pass" type="password" placeholder="Enter Password" class="w-56"><br><br>
+        <button class="bg-red-600 text-white rounded-lg ml-16 px-10 py-2 border-transparent" >Login</button><br>
+        <a href="" class="text-red-600 ml-16">Forget password?</a>
+        </form>
+    </div>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <Script src="https://cdn.tailwindcss.com"></Script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./dist2/css/style.css">
+</head>
+<body>
+    <nav class="py-6 px-4 flex flex-col gap-[10px]">
+<!-- <div>
+    https"//unpkg.com/@tailwindcss/browser@4  ye script tag mein cdn css file ke liye hai 
+    bg-[#d3fc03]  ham aise custum color use kr skte hai 
+    for making custum themes and colors in style tag we can use css directory to make it
+    <style type="text/tailwindcss" >
+    @theme{
+    --color-lime: #d3fc03}
+    --jodeclare-colorname: define
+    --text-custombig: 140px
+    breakpoint
+    default mobile size ke liye md meduim devices and lg ke liye
+    --breakpoint-custom:400px;
+    </style>
+</div> -->
+    <div class="flex justify-end">
+     <div class="flex gap-[10px] text-xs font-semibold">
+        <div class="">Support</div>
+        <div class="flex gap-[2px] items-center justify-center"></div>
+        <div>For Bussiness </div>
+        <div>
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDI0IiBoZWlnaHQ9IjEwMjQiIHZpZXdCb3g9IjAgMCAxMDI0IDEwMjQiPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTc2OCAyNTZIMzUzLjZhMzIgMzIgMCAxIDEgMC02NEg4MDBhMzIgMzIgMCAwIDEgMzIgMzJ2NDQ4YTMyIDMyIDAgMCAxLTY0IDB6Ii8+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNNzc3LjM0NCAyMDEuMzQ0YTMyIDMyIDAgMCAxIDQ1LjMxMiA0NS4zMTJsLTU0NCA1NDRhMzIgMzIgMCAwIDEtNDUuMzEyLTQ1LjMxMnoiLz48L3N2Zz4=" 
+            alt="" class="w-[16px] h-[16px]"/>
+        </div>
+     </div>
+    </div>
+
+    <div class="flex justify-between items-center " >
+        <div class="flex gap-[52px] items-center">
+        <div class="text-2xl font-bold">SAMSUNG</div>
+        <div class="flex gap-[20px] font-semibold text-base">
+          <div class="">Shop</div>
+          <div class="">Mobile</div>
+          <div class="">TV & AV</div>
+          <div class="">Appliances</div>
+          <div class="">Computing & Display</div>
+          <div class="">Accessories</div>
+          <div class="">Smart Things</div>
+          <div class="">AI</div>
+        </div>
+    </div>
+    <div class="flex gap-[20px]  cursor-pointer">
+
+        <div class="flex gap-[10px] py-[8px] px-[20px] rounded-3xl w-[200px] bg-gray-100 justify-start">
+             <div class="">
+                 <img class="w-[20px] h-[20px]" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSIgZD0iTTE1LjU1MyAxNS41NTNhNy4wNiA3LjA2IDAgMSAwLTkuOTg1LTkuOTg1YTcuMDYgNy4wNiAwIDAgMCA5Ljk4NSA5Ljk4NW0wIDBMMjAgMjAiLz48L3N2Zz4=" alt="">
+                </div>
+             <div class="font-light text-gray-600">Search</div>
+        </div>
+
+    <div class="flex gap-[20px] items-center">
+
+        <div class="flex gap-[10px] items-center">
+
+            <div> <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0wIDEuNUEuNS41IDAgMCAxIC41IDFIMmEuNS41IDAgMCAxIC40ODUuMzc5TDIuODkgM0gxNC41YS41LjUgMCAwIDEgLjQ5MS41OTJsLTEuNSA4QS41LjUgMCAwIDEgMTMgMTJINGEuNS41IDAgMCAxLS40OTEtLjQwOEwyLjAxIDMuNjA3TDEuNjEgMkguNWEuNS41IDAgMCAxLS41LS41TTMuMTAyIDRsMS4zMTMgN2g4LjE3bDEuMzEzLTd6TTUgMTJhMiAyIDAgMSAwIDAgNGEyIDIgMCAwIDAgMC00bTcgMGEyIDIgMCAxIDAgMCA0YTIgMiAwIDAgMCAwLTRtLTcgMWExIDEgMCAxIDEgMCAyYTEgMSAwIDAgMSAwLTJtNyAwYTEgMSAwIDEgMSAwIDJhMSAxIDAgMCAxIDAtMiIvPjwvc3ZnPg==" alt=""
+                class="w-[28px] h-[28px]"></div>
+            <div> <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xNy40MzggMjEuOTM3SDYuNTYyYTIuNSAyLjUgMCAwIDEtMi41LTIuNXYtLjgyN2MwLTMuOTY5IDMuNTYxLTcuMiA3LjkzOC03LjJzNy45MzggMy4yMjkgNy45MzggNy4ydi44MjdhMi41IDIuNSAwIDAgMS0yLjUgMi41TTEyIDEyLjQxMmMtMy44MjYgMC02LjkzOCAyLjc4LTYuOTM4IDYuMnYuODI3YTEuNSAxLjUgMCAwIDAgMS41IDEuNWgxMC44NzZhMS41IDEuNSAwIDAgMCAxLjUtMS41di0uODI5YzAtMy40MTgtMy4xMTItNi4xOTgtNi45MzgtNi4xOThtMC0yLjUwMWEzLjkyNCAzLjkyNCAwIDEgMSAzLjkyMy0zLjkyNEEzLjkyNyAzLjkyNyAwIDAgMSAxMiA5LjkxMW0wLTYuODQ3YTIuOTI0IDIuOTI0IDAgMSAwIDIuOTIzIDIuOTIzQTIuOTI2IDIuOTI2IDAgMCAwIDEyIDMuMDY0Ii8+PC9zdmc+" alt=""
+                class="w-[28px] h-[28px]"></div>
+
+            </div>
+
+        </div>
+    </div>
+    </div>
+    </div>
+
+    </nav>
+
+    <div class="flex items-center justify-center text-4xl font-bold">
+            <div>This Week's HighLights</div>
+    </div>
+    <div class=" flex items-center justify-center gap-[40px] mt-[20px]">
+         <div class="font-semibold text-xl"><a href="">New In</a></div>
+         <div class="font-semibold text-xl"><a href="">Mobile</a></div>
+         <div class="font-semibold text-xl"><a href="">TV</a></div>
+         <div class="font-semibold text-xl"><a href="">Appliance</a></div>
+         <div class="font-semibold text-xl"><a href="">Ecosystem</a></div>
+         <div class="font-semibold text-xl"><a href="">Samsung Live</a></div>
+    </div>
+    
+<div class="grid grid-cols-4 grid-rows-4 gap-4 mt-[20px] ">
+    <!-- <div class=" col-span-2 row-span-4 flex items-center justify-center overflow-hidden object-cover max-w-fit rounded-3xl"><img class=" hover:scale-110 transition-transform duration-300 " src="https://images.samsung.com/is/image/samsung/assets/in/home/250107/684x684_Big_Tile_Paradigm.jpg?$684_684_JPG$" alt=""><div class="absolute bottom-[-150px] items-center " ><h2 class="font-bold text-2xl text-white">Galaxy Unpacked</h2> <p class=" mt-[10px] font-base text-xs text-white">Pre-reserve benifits up to ₹ 5000</p></div></div> -->
+    <div class="group col-span-2 row-span-4 flex items-center justify-center overflow-hidden object-cover max-w-fit rounded-3xl relative">
+        <img class="hover:scale-110 transition-transform duration-300" 
+             src="https://images.samsung.com/is/image/samsung/assets/in/home/250107/684x684_Big_Tile_Paradigm.jpg?$684_684_JPG$" 
+             alt="">
+        <div class="absolute bottom-0 items-center text-center w-full transition-all duration-300 ease-in-out">
+            <h2 class="font-bold text-2xl text-white">Galaxy Unpacked</h2>
+            <p class="mt-[10px] font-base text-xs text-white">Pre-reserve benefits up to ₹ 5000*</p>
+            <button class=" font-semibold bg-white text-black rounded-3xl py-2 px-4 rounded mt-[10px] transform translate-y-5 opacity-0 transition-transform duration-300 ease-in-out group-hover:translate-y-0 group-hover:opacity-100">Pre-reserve now</button>
+        </div>
+    </div>
+    
+    <div class="group col-span-1 row-span-2 flex items-center justify-center overflow-hidden object-cover max-w-fit rounded-3xl relative">
+        <img class="hover:scale-110 transition-transform duration-300" 
+             src="https://images.samsung.com/is/image/samsung/assets/in/home/250117/Galaxy_S24_Small_Tile_330x330.jpg?$330_330_JPG$" 
+             alt="">
+        <div class="absolute bottom-[20px] items-center text-center w-full transition-all duration-300 ease-in-out">
+            <h2 class="font-semibold text-xl text-black">Galaxy S24</h2>
+            <p class=" font-semibold text-xl text-black">Own now at ₹ 54999*</p>
+            <button class="bg-black text-white rounded-3xl py-2 px-4 mt-[10px] transform translate-y-5 opacity-0 transition-transform duration-300 ease-in-out group-hover:translate-y-0 group-hover:opacity-100">
+                Buy now
+            </button>
+        </div>
+    </div>
+    
+    <div class="group col-span-1 row-span-2 flex items-center justify-center overflow-hidden object-cover max-w-fit rounded-3xl relative">
+        <img class="hover:scale-110 transition-transform duration-300" 
+             src="https://images.samsung.com/is/image/samsung/assets/in/home/RT51DG682BB1TL_Small_Tile_330x330.jpg?$330_330_JPG$" 
+             alt="">
+        <div class="absolute bottom-[20px] items-center text-center w-full transition-all duration-300 ease-in-out">
+            <h2 class="font-semibold text-xl text-black">RT51DG682BB1TL</h2>
+            <p class="font-semibold text-xl text-black">Own now at ₹ 49999*</p>
+            <button class="bg-black text-white rounded-3xl py-2 px-4 mt-[10px] transform translate-y-5 opacity-0 transition-transform duration-300 ease-in-out group-hover:translate-y-0 group-hover:opacity-100">
+                Buy now
+            </button>
+        </div>
+    </div>
+    
+    <div class="group col-span-1 row-span-2 flex items-center justify-center overflow-hidden object-cover max-w-fit rounded-3xl relative">
+        <img class="hover:scale-110 transition-transform duration-300" 
+             src="https://images.samsung.com/is/image/samsung/assets/in/home/250113/Galaxy_S24_FE_330X330.png?$330_330_PNG$" 
+             alt="">
+        <div class="absolute bottom-[20px] items-center text-center w-full transition-all duration-300 ease-in-out">
+            <h2 class="font-semibold text-xl text-black">Galaxy S24 FE</h2>
+            <p class="font-semibold text-xl text-black">Own now at ₹ 54999*</p>
+            <button class="bg-black text-white rounded-3xl py-2 px-4 mt-[10px] transform translate-y-5 opacity-0 transition-transform duration-300 ease-in-out group-hover:translate-y-0 group-hover:opacity-100">
+                Buy now
+            </button>
+        </div>
+    </div>
+    
+    <div class="group col-span-1 row-span-2 flex items-center justify-center overflow-hidden object-cover max-w-fit rounded-3xl relative">
+        <img class="hover:scale-110 transition-transform duration-300" 
+             src="https://images.samsung.com/is/image/samsung/assets/in/home/241206/330x330_DUE70_.jpg?$330_330_JPG$" 
+             alt="">
+        <div class="absolute bottom-[20px] items-center text-center w-full transition-all duration-300 ease-in-out">
+            <h2 class="font-semibold text-xl text-black">DUE70</h2>
+            <p class="font-semibold text-xl text-black">Own now at ₹ 44999*</p>
+            <button class="bg-black text-white rounded-3xl py-2 px-4 mt-[10px] transform translate-y-5 opacity-0 transition-transform duration-300 ease-in-out group-hover:translate-y-0 group-hover:opacity-100">
+                Buy now
+            </button>
+        </div>
+    </div>
+    
+</div>
+</body>
+</html>
